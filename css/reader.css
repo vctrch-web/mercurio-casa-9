@@ -1,0 +1,343 @@
+/* ============================================================
+   MERCÚRIO CASA 9 — Página de leitura (a "folha aberta")
+   ============================================================ */
+
+.reader {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 1rem var(--gutter) 7rem;
+}
+
+.reader__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  font-weight: 600;
+  color: var(--ink-faint);
+  margin-bottom: 2.5rem;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.reader__back:hover, .reader__back:focus-visible {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.reader__back svg { width: 11px; height: 11px; }
+
+.reader__head {
+  text-align: center;
+  padding-bottom: 2.5rem;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.reader__folio {
+  font-family: var(--face-display);
+  font-style: italic;
+  color: var(--ink-faint);
+  font-size: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.reader__title {
+  font-size: clamp(2.1rem, 5.5vw, 3.4rem);
+  font-weight: 500;
+  line-height: 1.08;
+}
+
+.reader__subtitle {
+  margin-top: 1.1rem;
+  font-family: var(--face-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.1rem, 2.3vw, 1.4rem);
+  color: var(--ink-soft);
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.45;
+}
+
+.reader__meta {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+  align-items: center;
+}
+.reader__meta span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+}
+.reader__meta .dot { width: 3px; height: 3px; background: var(--ink-faint); border-radius: 50%; }
+
+/* — Imagem de capa — */
+.reader__cover {
+  margin: 0 auto 3rem;
+  filter: grayscale(1) contrast(1.05);
+}
+.reader__cover img { width: 100%; height: auto; }
+.reader__cover figcaption {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--ink-faint);
+  font-family: var(--face-display);
+}
+
+/* ============================================================
+   Corpo do texto — a tipografia faz o trabalho pesado
+   ============================================================ */
+
+.reader__body {
+  font-family: var(--face-body);
+  font-size: clamp(1.08rem, 1.4vw, 1.22rem);
+  line-height: 1.85;
+  color: var(--ink);
+}
+
+.reader__body > p {
+  margin: 0 0 1.5em;
+}
+
+/* Primeira letra capitular — assinatura editorial sutil */
+.reader__body > p:first-of-type::first-letter {
+  font-family: var(--face-display);
+  font-size: 3.6em;
+  font-weight: 500;
+  float: left;
+  line-height: 0.82;
+  padding: 0.04em 0.08em 0 0;
+  color: var(--ink);
+}
+
+.reader__body h2 {
+  font-size: 1.6em;
+  font-style: italic;
+  font-weight: 500;
+  margin: 2em 0 0.9em;
+  text-align: center;
+}
+
+.reader__body h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin: 1.8em 0 0.7em;
+}
+
+.reader__body blockquote {
+  margin: 2em auto;
+  max-width: 34rem;
+  padding: 0 0 0 1.5rem;
+  border-left: 2px solid var(--rule-strong);
+  font-family: var(--face-display);
+  font-style: italic;
+  font-size: 1.2em;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+.reader__body strong { font-weight: 600; }
+.reader__body em { font-style: italic; }
+
+.reader__body a {
+  border-bottom: 1px solid var(--ink-faint);
+  transition: border-color 0.2s var(--ease);
+}
+.reader__body a:hover { border-color: var(--ink); }
+
+.reader__body ul, .reader__body ol {
+  margin: 0 0 1.5em;
+  padding-left: 1.4em;
+}
+.reader__body li { margin-bottom: 0.5em; }
+
+.reader__body hr {
+  border: none;
+  text-align: center;
+  margin: 3rem 0;
+}
+.reader__body hr::before {
+  content: "✦  ✦  ✦";
+  letter-spacing: 0.6em;
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+}
+
+/* — Imagens dentro do texto: o tratamento refinado — */
+.reader__body figure {
+  margin: 2.75rem 0;
+}
+
+.reader__body figure.is-inline {
+  margin-left: calc(var(--gutter) * -0.4);
+  margin-right: calc(var(--gutter) * -0.4);
+}
+
+.reader__body figure.is-wide {
+  margin-left: calc(50% - 50vw + var(--gutter));
+  margin-right: calc(50% - 50vw + var(--gutter));
+  max-width: 1100px;
+}
+
+.reader__body figure img {
+  width: 100%;
+  height: auto;
+  filter: grayscale(1) contrast(1.05);
+}
+
+.reader__body figure figcaption {
+  margin-top: 0.85rem;
+  text-align: center;
+  font-family: var(--face-display);
+  font-style: italic;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  padding: 0 1rem;
+}
+
+.reader__body figure figcaption .cap-num {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-style: normal;
+  font-family: var(--face-body);
+  font-weight: 600;
+  margin-right: 0.4em;
+}
+
+/* Imagem pequena alinhada (lado a lado com legenda) */
+.reader__body figure.is-float-right {
+  float: right;
+  width: 38%;
+  margin: 0.3rem 0 1.5rem 2.25rem;
+}
+.reader__body figure.is-float-left {
+  float: left;
+  width: 38%;
+  margin: 0.3rem 2.25rem 1.5rem 0;
+}
+
+@media (max-width: 640px) {
+  .reader__body figure.is-float-right,
+  .reader__body figure.is-float-left {
+    float: none;
+    width: 100%;
+    margin: 2rem 0;
+  }
+}
+
+/* — Rodapé do texto: colofão + navegação — */
+.reader__colophon {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--rule);
+  text-align: center;
+}
+
+.reader__tools {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin-bottom: 2.5rem;
+}
+
+.reader__tools button,
+.reader__tools a {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: var(--ink-faint);
+  padding: 0.5rem 1.1rem;
+  border-right: 1px solid var(--rule);
+  transition: color 0.2s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.reader__tools > :last-child { border-right: none; }
+.reader__tools button:hover,
+.reader__tools a:hover { color: var(--ink); }
+.reader__tools svg { width: 13px; height: 13px; }
+
+.reader__share-menu {
+  position: relative;
+  display: inline-block;
+}
+.reader__share-options {
+  position: absolute;
+  bottom: calc(100% + 0.6rem);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  box-shadow: 0 8px 24px rgba(24,22,15,0.12);
+  padding: 0.4rem 0;
+  min-width: 168px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease), visibility 0.2s;
+  z-index: 10;
+}
+.reader__share-menu.is-open .reader__share-options {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+.reader__share-options button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 1rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-weight: 400;
+  font-family: var(--face-body);
+  border: none;
+  color: var(--ink-soft);
+}
+.reader__share-options button:hover { background: var(--wash); color: var(--ink); }
+
+.reader__folio-end {
+  font-family: var(--face-display);
+  font-style: italic;
+  color: var(--ink-faint);
+  font-size: 0.95rem;
+}
+
+/* — Navegação entre textos (anterior / próximo) — */
+.reader__nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--rule);
+  margin-top: 3rem;
+}
+.reader__nav-link {
+  padding: 1.75rem var(--gutter);
+  transition: background 0.25s var(--ease);
+}
+.reader__nav-link:hover { background: var(--wash); }
+.reader__nav-link--prev { border-right: 1px solid var(--rule); text-align: left; }
+.reader__nav-link--next { text-align: right; }
+.reader__nav-link .label-caps { display: block; margin-bottom: 0.5rem; }
+.reader__nav-link .nav-title {
+  font-family: var(--face-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+
+@media (max-width: 600px) {
+  .reader__nav { grid-template-columns: 1fr; }
+  .reader__nav-link--prev { border-right: none; border-bottom: 1px solid var(--rule); }
+}
