@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel do Administrador — Mercúrio Casa 9</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-side">
+    <div class="admin-side__brand">
+      <div class="masthead__glyph"></div>
+      <span>Mercúrio Casa 9</span>
+    </div>
+    <ul class="admin-nav">
+      <li><a href="admin-dashboard.html" class="is-active" id="navDashboard"></a></li>
+      <li><a href="admin-editor.html" id="navNew"></a></li>
+      <li><a href="index.html" target="_blank" id="navView"></a></li>
+    </ul>
+    <div class="admin-side__footer">
+      <div class="admin-side__user" id="userEmail"></div>
+      <a href="admin-reset.html" id="navChangePassword">Alterar palavra-passe</a>
+      <button id="btnLogout"></button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <div>
+        <h1>Os seus textos</h1>
+        <p id="countLabel"></p>
+      </div>
+      <a href="admin-editor.html" class="btn btn--primary" id="btnNewTop"></a>
+    </div>
+
+    <div id="manageTable"></div>
+    <div class="admin-empty" id="emptyState" style="display:none;">
+      Nenhum texto ainda. Comece o primeiro capítulo da casa.
+    </div>
+  </main>
+</div>
+
+<!-- Confirmação de exclusão -->
+<div class="modal-scrim" id="deleteModal">
+  <div class="modal-box confirm-box">
+    <h3>Apagar este texto?</h3>
+    <p>Tem a certeza de que deseja apagar <strong id="deleteTitle"></strong>? Esta ação não pode ser desfeita.</p>
+    <div class="modal-actions">
+      <button class="btn btn--quiet" id="cancelDelete">Cancelar</button>
+      <button class="btn btn--danger" id="confirmDelete">Apagar definitivamente</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast"></div>
+
+<script src="js/supabase-client.js"></script>
+<script src="js/data.js"></script>
+<script src="js/util.js"></script>
+<script>
+  if (Util.requireAuth()) {
+
+    Util.injectGlyph('.masthead__glyph');
+    document.getElementById('userEmail').textContent = DB.getSession().email;
+
+    document.getElementById('navDashboard').innerHTML = `${ICONS.dashboard} Painel`;
+    document.getElementById('navNew').innerHTML = `${ICONS.feather} Escrever novo texto`;
+    document.getElementById('navView').innerHTML = `${ICONS.link} Ver o site`;
+    document.getElementById('btnLogout').innerHTML = `${ICONS.logout} Terminar sessão`;
+    document.getElementById('btnNewTop').innerHTML = `${ICONS.plus} Novo texto`;
+
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      DB.logout();
+      window.location.href = 'admin-login.html';
+    });
+
+    let pendingDeleteId = null;
+    const deleteModal = document.getElementById('deleteModal');
+
+    function renderTable() {
+      const posts = DB.getPosts().sort((a, b) => b.createdAt - a.createdAt);
+      const wrap = document.getElementById('manageTable');
+      const empty = document.getElementById('emptyState');
+      const countLabel = document.getElementById('countLabel');
+
+      const publishedCount = posts.filter(p => p.status === 'published').length;
+      const draftCount = posts.filter(p => p.status === 'draft').length;
+      countLabel.textContent = `${publishedCount} publicado${publishedCount !== 1 ? 's' : ''} · ${draftCount} rascunho${draftCount !== 1 ? 's' : ''}`;
+
+      if (posts.length === 0) {
+        wrap.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      wrap.innerHTML = `
+        <div class="manage-table">
+          ${posts.map(p => `
+            <div class="manage-row">
+              <div>
+                <div class="manage-row__title">
+                  ${p.status === 'published'
+                    ? `<a href="texto.html?slug=${encodeURIComponent(p.slug)}" target="_blank">${Util.escapeHtml(p.title) || '(sem título)'}</a>`
+                    : (Util.escapeHtml(p.title) || '(sem título)')}
+                </div>
+                <div class="manage-row__meta">${Util.formatDate(p.date)} · Folha ${Util.romanize(p.folio || 1)}</div>
+              </div>
+              <span class="status-pill ${p.status === 'published' ? 'status-pill--published' : ''}">${p.status === 'published' ? 'Publicado' : 'Rascunho'}</span>
+              <div class="manage-row__actions">
+                <a class="icon-btn" href="admin-editor.html?id=${encodeURIComponent(p.id)}" title="Editar">${ICONS.edit}</a>
+                <button class="icon-btn" data-delete="${p.id}" data-title="${Util.escapeHtml(p.title) || 'este texto'}" title="Apagar">${ICONS.trash}</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      wrap.querySelectorAll('[data-delete]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          pendingDeleteId = btn.dataset.delete;
+          document.getElementById('deleteTitle').textContent = btn.dataset.title;
+          deleteModal.classList.add('is-open');
+        });
+      });
+    }
+
+    document.getElementById('cancelDelete').addEventListener('click', () => {
+      deleteModal.classList.remove('is-open');
+      pendingDeleteId = null;
+    });
+    deleteModal.addEventListener('click', (e) => {
+      if (e.target === deleteModal) { deleteModal.classList.remove('is-open'); pendingDeleteId = null; }
+    });
+    document.getElementById('confirmDelete').addEventListener('click', async () => {
+      if (pendingDeleteId) {
+        await DB.deletePost(pendingDeleteId);
+        Util.toast('Texto apagado', 'check');
+        renderTable();
+      }
+      deleteModal.classList.remove('is-open');
+      pendingDeleteId = null;
+    });
+
+    DB.sync()
+      .then(renderTable)
+      .catch(() => {
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('emptyState').textContent = 'Não foi possível ligar à base de dados.';
+      });
+  }
+</script>
+</body>
+</html>

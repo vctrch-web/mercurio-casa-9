@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Mercúrio Casa 9</title>
+<meta name="description" id="pageDescription" content="">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/header.css">
+<link rel="stylesheet" href="css/index-page.css">
+<link rel="stylesheet" href="css/reader.css">
+</head>
+<body>
+
+<header class="masthead" style="padding-bottom: 1.5rem;">
+  <nav class="utility-nav">
+    <a href="admin-login.html">Administrador</a>
+  </nav>
+  <a href="index.html" style="display:inline-block;">
+    <div class="masthead__glyph" style="width:24px;height:24px;"></div>
+  </a>
+</header>
+
+<main class="reader" id="readerRoot">
+  <!-- preenchido via JS -->
+</main>
+
+<div class="toast"></div>
+
+<script src="js/supabase-client.js"></script>
+<script src="js/data.js"></script>
+<script src="js/util.js"></script>
+<script>
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('slug');
+  const root = document.getElementById('readerRoot');
+
+  Util.injectGlyph('.masthead__glyph');
+  Util.buildToTopButton();
+
+  try {
+    await DB.sync();
+  } catch (e) {
+    root.innerHTML = `
+      <div class="reader__head" style="border:none;">
+        <p class="reader__folio">Erro de ligação</p>
+        <h1 class="reader__title">Não foi possível carregar este texto</h1>
+        <p class="reader__subtitle">Verifique a sua ligação à internet e tente novamente.</p>
+      </div>`;
+    Util.buildToc(slug);
+    return;
+  }
+
+  const post = slug ? DB.getPostBySlug(slug) : null;
+  Util.buildToc(slug);
+
+  if (!post || post.status !== 'published') {
+    root.innerHTML = `
+      <div class="reader__head" style="border:none;">
+        <p class="reader__folio">Folha não encontrada</p>
+        <h1 class="reader__title">Este texto não está disponível</h1>
+        <p class="reader__subtitle">Pode ter sido removido, ou o endereço está incorreto.</p>
+      </div>
+      <p style="text-align:center; margin-top: 2rem;">
+        <a class="reader__back" href="index.html">${ICONS.arrowLeft} Voltar ao sumário</a>
+      </p>
+    `;
+  } else {
+    document.getElementById('pageTitle').textContent = post.title + ' — Mercúrio Casa 9';
+    document.getElementById('pageDescription').setAttribute('content', post.subtitle || post.title);
+
+    const allPublished = DB.getPublishedPosts();
+    const idx = allPublished.findIndex(p => p.id === post.id);
+    const prevPost = allPublished[idx + 1]; // mais antigo
+    const nextPost = allPublished[idx - 1]; // mais recente
+    const readTime = DB.estimateReadTime(post.bodyHtml);
+
+    root.innerHTML = `
+      <a class="reader__back" href="index.html">${ICONS.arrowLeft} Sumário</a>
+
+      <article>
+        <header class="reader__head">
+          <p class="reader__folio">Folha ${Util.romanize(post.folio || 1)}</p>
+          <h1 class="reader__title">${Util.escapeHtml(post.title)}</h1>
+          ${post.subtitle ? `<p class="reader__subtitle">${Util.escapeHtml(post.subtitle)}</p>` : ''}
+          <div class="reader__meta">
+            <span>${Util.formatDate(post.date)}</span>
+            <span class="dot"></span>
+            <span>${readTime} min de leitura</span>
+          </div>
+        </header>
+
+        ${post.coverImage ? `
+        <figure class="reader__cover">
+          <img src="${post.coverImage}" alt="${Util.escapeHtml(post.title)}">
+          ${post.coverCaption ? `<figcaption>${Util.escapeHtml(post.coverCaption)}</figcaption>` : ''}
+        </figure>` : ''}
+
+        <div class="reader__body">${post.bodyHtml}</div>
+
+        <div class="reader__colophon">
+          <div class="reader__tools">
+            <button id="btnEdit" style="display:none;">${ICONS.edit} Editar</button>
+            <div class="reader__share-menu" id="shareMenu">
+              <button id="btnShare">${ICONS.share} Partilhar</button>
+              <div class="reader__share-options">
+                <button data-share="copy">Copiar ligação</button>
+                <button data-share="whatsapp">WhatsApp</button>
+                <button data-share="email">E-mail</button>
+                <button data-share="twitter">X / Twitter</button>
+              </div>
+            </div>
+          </div>
+          <p class="reader__folio-end">— ${Util.romanize(post.folio || 1)} —</p>
+        </div>
+      </article>
+
+      <nav class="reader__nav">
+        <a class="reader__nav-link reader__nav-link--prev" href="${prevPost ? `texto.html?slug=${encodeURIComponent(prevPost.slug)}` : '#'}" ${!prevPost ? 'style="visibility:hidden;pointer-events:none;"' : ''}>
+          <span class="label-caps">← Texto anterior</span>
+          <span class="nav-title">${prevPost ? Util.escapeHtml(prevPost.title) : ''}</span>
+        </a>
+        <a class="reader__nav-link reader__nav-link--next" href="${nextPost ? `texto.html?slug=${encodeURIComponent(nextPost.slug)}` : '#'}" ${!nextPost ? 'style="visibility:hidden;pointer-events:none;"' : ''}>
+          <span class="label-caps">Próximo texto →</span>
+          <span class="nav-title">${nextPost ? Util.escapeHtml(nextPost.title) : ''}</span>
+        </a>
+      </nav>
+    `;
+
+    // Mostrar botão de editar apenas se autenticado como admin
+    if (DB.isAuthenticated()) {
+      const btnEdit = document.getElementById('btnEdit');
+      btnEdit.style.display = 'inline-flex';
+      btnEdit.addEventListener('click', () => {
+        window.location.href = `admin-editor.html?id=${encodeURIComponent(post.id)}`;
+      });
+    }
+
+    // Partilhar
+    const shareMenu = document.getElementById('shareMenu');
+    document.getElementById('btnShare').addEventListener('click', (e) => {
+      e.stopPropagation();
+      shareMenu.classList.toggle('is-open');
+    });
+    document.addEventListener('click', () => shareMenu.classList.remove('is-open'));
+
+    shareMenu.querySelectorAll('[data-share]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const url = window.location.href;
+        const title = post.title;
+        const type = btn.dataset.share;
+        if (type === 'copy') {
+          Util.copyToClipboard(url).then(() => Util.toast('Ligação copiada', 'check'));
+        } else if (type === 'whatsapp') {
+          window.open(`https://wa.me/?text=${encodeURIComponent(title + ' — ' + url)}`, '_blank');
+        } else if (type === 'email') {
+          window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`;
+        } else if (type === 'twitter') {
+          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`, '_blank');
+        }
+        shareMenu.classList.remove('is-open');
+      });
+    });
+  }
+}
+
+init();
+</script>
+</body>
+</html>

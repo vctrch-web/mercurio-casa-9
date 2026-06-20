@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Editor — Mercúrio Casa 9</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<div class="admin-shell">
+  <aside class="admin-side">
+    <div class="admin-side__brand">
+      <div class="masthead__glyph"></div>
+      <span>Mercúrio Casa 9</span>
+    </div>
+    <ul class="admin-nav">
+      <li><a href="admin-dashboard.html" id="navDashboard"></a></li>
+      <li><a href="admin-editor.html" class="is-active" id="navNew"></a></li>
+      <li><a href="index.html" target="_blank" id="navView"></a></li>
+    </ul>
+    <div class="admin-side__footer">
+      <div class="admin-side__user" id="userEmail"></div>
+      <a href="admin-reset.html">Alterar palavra-passe</a>
+      <button id="btnLogout"></button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-header">
+      <div>
+        <h1 id="editorHeading">Novo texto</h1>
+        <p>Escreva, cole de qualquer editor, e dê forma à página.</p>
+      </div>
+      <a href="admin-dashboard.html" class="btn btn--quiet" id="btnBackList"></a>
+    </div>
+
+    <div class="editor-grid">
+      <!-- COLUNA PRINCIPAL -->
+      <div>
+        <div class="editor-field">
+          <label for="titleInput">Título do texto</label>
+          <input type="text" id="titleInput" class="editor-title-input" placeholder="O título da sua página…">
+        </div>
+
+        <div class="editor-field">
+          <button type="button" class="btn btn--quiet" id="btnToggleSubtitle" style="margin-bottom: 0.85rem;"></button>
+          <div class="subtitle-field" id="subtitleField">
+            <textarea id="subtitleInput" placeholder="Um breve cabeçalho ou subtítulo para acompanhar o título…"></textarea>
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label>Imagem principal (capa)</label>
+          <div class="cover-drop" id="coverDrop">
+            <input type="file" id="coverFileInput" accept="image/*">
+            <div id="coverIcon"></div>
+            <p>Arraste uma imagem, ou clique para escolher do computador</p>
+          </div>
+          <div class="cover-preview" id="coverPreview">
+            <img id="coverPreviewImg" src="" alt="Pré-visualização da capa">
+            <button type="button" class="cover-preview__remove" id="btnRemoveCover"></button>
+            <input type="text" id="coverCaptionInput" class="cover-caption-input" placeholder="Legenda da imagem (opcional)">
+          </div>
+        </div>
+
+        <div class="editor-field">
+          <label>Corpo do texto</label>
+          <div class="editor-toolbar" id="toolbar">
+            <div class="toolbar-group">
+              <button type="button" class="tb-btn" data-cmd="undo" title="Desfazer"></button>
+              <button type="button" class="tb-btn" data-cmd="redo" title="Refazer"></button>
+            </div>
+            <div class="toolbar-group">
+              <button type="button" class="tb-btn" data-block="p" title="Parágrafo">¶</button>
+              <button type="button" class="tb-btn tb-btn--text" data-block="h2" title="Título de secção">T</button>
+            </div>
+            <div class="toolbar-group">
+              <button type="button" class="tb-btn" data-cmd="bold" title="Negrito (Ctrl+B)"></button>
+              <button type="button" class="tb-btn" data-cmd="italic" title="Itálico (Ctrl+I)"></button>
+            </div>
+            <div class="toolbar-group">
+              <button type="button" class="tb-btn" data-block="blockquote" title="Citação"></button>
+              <button type="button" class="tb-btn" data-cmd="insertUnorderedList" title="Lista"></button>
+              <button type="button" class="tb-btn" data-block="hr" title="Separador ornamental"></button>
+            </div>
+            <div class="toolbar-group">
+              <button type="button" class="tb-btn" id="btnInsertLink" title="Inserir hiperligação"></button>
+              <button type="button" class="tb-btn" id="btnInsertImage" title="Inserir imagem no texto"></button>
+            </div>
+          </div>
+          <div class="editor-surface" id="editorSurface" contenteditable="true" data-placeholder="Escreva o seu texto aqui, ou cole de qualquer editor…"></div>
+          <div class="editor-footer-bar">
+            <span id="wordCount">0 palavras</span>
+            <span id="readTimeLabel">~1 min de leitura</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAINEL LATERAL DE PUBLICAÇÃO -->
+      <div class="publish-panel">
+        <h3>Publicação</h3>
+        <div class="editor-field">
+          <label for="dateInput">Data</label>
+          <input type="date" id="dateInput">
+        </div>
+        <div class="editor-field">
+          <label for="statusSelect">Estado</label>
+          <select id="statusSelect">
+            <option value="draft">Rascunho</option>
+            <option value="published">Publicado</option>
+          </select>
+          <span class="hint">Rascunhos não aparecem no site para visitantes.</span>
+        </div>
+        <hr class="divider-line">
+        <button class="btn btn--primary" id="btnSave"></button>
+        <button class="btn btn--quiet" id="btnPreview"></button>
+        <button class="btn btn--quiet" id="btnDeleteFromEditor" style="display:none;"></button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: inserir hiperligação -->
+<div class="modal-scrim" id="linkModal">
+  <div class="modal-box">
+    <h3>Inserir hiperligação</h3>
+    <div class="field">
+      <label for="linkUrlInput">Endereço (URL)</label>
+      <input type="text" id="linkUrlInput" placeholder="https://">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn--quiet" id="cancelLink">Cancelar</button>
+      <button class="btn btn--primary" id="confirmLink">Inserir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: inserir imagem no corpo -->
+<div class="modal-scrim" id="imageModal">
+  <div class="modal-box">
+    <h3>Inserir imagem no texto</h3>
+    <div class="modal-tabs">
+      <button type="button" class="is-active" data-tab="upload">Carregar ficheiro</button>
+      <button type="button" data-tab="url">Endereço (URL)</button>
+    </div>
+    <div class="modal-tab-panel is-active" data-panel="upload">
+      <div class="cover-drop" id="bodyImageDrop">
+        <input type="file" id="bodyImageFileInput" accept="image/*">
+        <div id="bodyImageIcon"></div>
+        <p>Arraste uma imagem, ou clique para escolher</p>
+      </div>
+    </div>
+    <div class="modal-tab-panel" data-panel="url">
+      <div class="field">
+        <label for="bodyImageUrlInput">Endereço da imagem</label>
+        <input type="text" id="bodyImageUrlInput" placeholder="https://…">
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:0.5rem;">
+      <label>Disposição na página</label>
+      <div class="modal-layout-options">
+        <button type="button" class="layout-opt is-active" data-layout="inline">Padrão</button>
+        <button type="button" class="layout-opt" data-layout="wide">Larga</button>
+        <button type="button" class="layout-opt" data-layout="float-left">Esquerda</button>
+        <button type="button" class="layout-opt" data-layout="float-right">Direita</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="bodyImageCaptionInput">Legenda (opcional)</label>
+      <textarea id="bodyImageCaptionInput" placeholder="Uma breve legenda para esta imagem…"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn--quiet" id="cancelImage">Cancelar</button>
+      <button class="btn btn--primary" id="confirmImage">Inserir imagem</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmação de exclusão -->
+<div class="modal-scrim" id="deleteModal">
+  <div class="modal-box confirm-box">
+    <h3>Apagar este texto?</h3>
+    <p>Esta ação não pode ser desfeita.</p>
+    <div class="modal-actions">
+      <button class="btn btn--quiet" id="cancelDelete">Cancelar</button>
+      <button class="btn btn--danger" id="confirmDelete">Apagar definitivamente</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast"></div>
+
+<script src="js/supabase-client.js"></script>
+<script src="js/data.js"></script>
+<script src="js/util.js"></script>
+<script src="js/editor.js"></script>
+</body>
+</html>

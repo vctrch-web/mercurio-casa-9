@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acesso do Administrador — Mercúrio Casa 9</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-card__head">
+      <div class="masthead__glyph"></div>
+      <h1>Acesso do administrador</h1>
+      <p>Mercúrio Casa 9</p>
+    </div>
+
+    <!-- ETAPA 1: Login -->
+    <div class="auth-step is-active" id="stepLogin">
+      <form class="auth-form" id="loginForm" novalidate>
+        <div class="field">
+          <label for="loginEmail">E-mail</label>
+          <input type="email" id="loginEmail" autocomplete="username" placeholder="o-seu-email@exemplo.com" required>
+        </div>
+        <div class="field">
+          <label for="loginPassword">Palavra-passe</label>
+          <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••" required>
+        </div>
+        <div class="field-error" id="loginError">E-mail ou palavra-passe incorretos.</div>
+        <button type="submit" class="auth-submit">Entrar</button>
+        <div class="auth-links">
+          <button type="button" id="goForgot">Esqueci-me da palavra-passe</button>
+        </div>
+      </form>
+
+      <div class="auth-demo-banner">
+        <strong>Nota de demonstração —</strong> este protótipo guarda os dados apenas neste navegador. Palavra-passe inicial: <strong>mercurio9</strong>. Para o site funcionar publicamente, com envio real de código por e-mail, é preciso ligar um backend (explico isto na conversa).
+      </div>
+    </div>
+
+    <!-- ETAPA 2: Pedir recuperação -->
+    <div class="auth-step" id="stepForgot">
+      <p class="auth-note">Indique o e-mail da conta de administrador. Enviaremos um código de 6 dígitos para confirmar a sua identidade.</p>
+      <form class="auth-form" id="forgotForm" style="border-top:none; padding-top:0;" novalidate>
+        <div class="field">
+          <label for="forgotEmail">E-mail</label>
+          <input type="email" id="forgotEmail" placeholder="o-seu-email@exemplo.com" required>
+        </div>
+        <div class="field-error" id="forgotError">Não encontrámos uma conta com este e-mail.</div>
+        <button type="submit" class="auth-submit">Enviar código</button>
+      </form>
+      <a class="auth-back" id="backToLogin1">← Voltar ao início de sessão</a>
+    </div>
+
+    <!-- ETAPA 3: Inserir código -->
+    <div class="auth-step" id="stepCode">
+      <p class="auth-note">Introduza o código de 6 dígitos enviado para <strong id="codeEmailLabel"></strong>.</p>
+      <form id="codeForm" novalidate>
+        <div class="auth-code-inputs">
+          <input type="text" inputmode="numeric" maxlength="1" class="code-digit">
+          <input type="text" inputmode="numeric" maxlength="1" class="code-digit">
+          <input type="text" inputmode="numeric" maxlength="1" class="code-digit">
+          <input type="text" inputmode="numeric" maxlength="1" class="code-digit">
+          <input type="text" inputmode="numeric" maxlength="1" class="code-digit">
+          <input type="text" inputmode="numeric" maxlength="1" class="code-digit">
+        </div>
+        <div class="field-error" id="codeError">Código incorreto ou expirado.</div>
+        <button type="submit" class="auth-submit">Confirmar código</button>
+      </form>
+      <a class="auth-back" id="backToLogin2">← Voltar ao início de sessão</a>
+    </div>
+
+    <!-- ETAPA 4: Nova senha -->
+    <div class="auth-step" id="stepNewPassword">
+      <p class="auth-note">Defina a nova palavra-passe de acesso.</p>
+      <form class="auth-form" id="newPasswordForm" style="border-top:none; padding-top:0;" novalidate>
+        <div class="field">
+          <label for="newPassword">Nova palavra-passe</label>
+          <input type="password" id="newPassword" placeholder="Mínimo 6 caracteres" required minlength="6">
+        </div>
+        <div class="field">
+          <label for="newPasswordConfirm">Confirmar palavra-passe</label>
+          <input type="password" id="newPasswordConfirm" placeholder="Repita a palavra-passe" required minlength="6">
+        </div>
+        <div class="field-error" id="newPasswordError">As palavras-passe não coincidem.</div>
+        <button type="submit" class="auth-submit">Guardar e entrar</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/util.js"></script>
+<script>
+  Util.injectGlyph('.masthead__glyph');
+
+  // Se já estiver autenticado, vai direto para o painel
+  if (DB.isAuthenticated()) {
+    window.location.href = 'admin-dashboard.html';
+  }
+
+  const steps = {
+    login: document.getElementById('stepLogin'),
+    forgot: document.getElementById('stepForgot'),
+    code: document.getElementById('stepCode'),
+    newPassword: document.getElementById('stepNewPassword'),
+  };
+
+  function showStep(name) {
+    Object.values(steps).forEach(s => s.classList.remove('is-active'));
+    steps[name].classList.add('is-active');
+  }
+
+  // --- Login ---
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+
+    if (DB.login(email, password)) {
+      Util.toast('Sessão iniciada', 'check');
+      setTimeout(() => window.location.href = 'admin-dashboard.html', 400);
+    } else {
+      errorEl.classList.add('is-visible');
+    }
+  });
+
+  // --- Navegação entre etapas ---
+  document.getElementById('goForgot').addEventListener('click', () => {
+    document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value;
+    showStep('forgot');
+  });
+  document.getElementById('backToLogin1').addEventListener('click', () => showStep('login'));
+  document.getElementById('backToLogin2').addEventListener('click', () => showStep('login'));
+
+  // --- Pedir código ---
+  let pendingEmail = '';
+  document.getElementById('forgotForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
+    const errorEl = document.getElementById('forgotError');
+    const admin = DB.getAdmin();
+
+    if (email !== admin.email.toLowerCase()) {
+      errorEl.classList.add('is-visible');
+      return;
+    }
+    errorEl.classList.remove('is-visible');
+    pendingEmail = email;
+    const code = DB.generateResetCode(email);
+    document.getElementById('codeEmailLabel').textContent = email;
+    showStep('code');
+
+    // DEMO: como não há backend de envio de e-mail aqui, mostramos
+    // o código diretamente. Num site real, isto chegaria à caixa
+    // de entrada e esta linha não existiria.
+    setTimeout(() => {
+      Util.toast(`Código de demonstração: ${code}`, 'check');
+    }, 350);
+  });
+
+  // --- Campos de código: navegação automática ---
+  const digits = Array.from(document.querySelectorAll('.code-digit'));
+  digits.forEach((input, i) => {
+    input.addEventListener('input', () => {
+      input.value = input.value.replace(/[^0-9]/g, '');
+      if (input.value && digits[i + 1]) digits[i + 1].focus();
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !input.value && digits[i - 1]) digits[i - 1].focus();
+    });
+    input.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData.getData('text') || '').replace(/[^0-9]/g, '').slice(0, 6);
+      text.split('').forEach((ch, idx) => { if (digits[idx]) digits[idx].value = ch; });
+      if (digits[text.length]) digits[text.length].focus();
+    });
+  });
+
+  document.getElementById('codeForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const code = digits.map(d => d.value).join('');
+    const errorEl = document.getElementById('codeError');
+
+    if (code.length === 6 && DB.verifyResetCode(code)) {
+      errorEl.classList.remove('is-visible');
+      showStep('newPassword');
+    } else {
+      errorEl.classList.add('is-visible');
+    }
+  });
+
+  // --- Nova senha ---
+  document.getElementById('newPasswordForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const p1 = document.getElementById('newPassword').value;
+    const p2 = document.getElementById('newPasswordConfirm').value;
+    const errorEl = document.getElementById('newPasswordError');
+
+    if (p1.length < 6 || p1 !== p2) {
+      errorEl.textContent = p1.length < 6 ? 'A palavra-passe deve ter pelo menos 6 caracteres.' : 'As palavras-passe não coincidem.';
+      errorEl.classList.add('is-visible');
+      return;
+    }
+
+    DB.setAdminPassword(p1);
+    DB.clearResetCode();
+    DB.login(pendingEmail, p1);
+    Util.toast('Palavra-passe atualizada', 'check');
+    setTimeout(() => window.location.href = 'admin-dashboard.html', 500);
+  });
+</script>
+</body>
+</html>

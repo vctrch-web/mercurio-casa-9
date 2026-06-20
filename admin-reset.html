@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alterar palavra-passe — Mercúrio Casa 9</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-card__head">
+      <div class="masthead__glyph"></div>
+      <h1>Alterar palavra-passe</h1>
+      <p id="userLabel"></p>
+    </div>
+
+    <form class="auth-form" id="changeForm" novalidate>
+      <div class="field">
+        <label for="currentPassword">Palavra-passe atual</label>
+        <input type="password" id="currentPassword" placeholder="••••••••" required>
+      </div>
+      <div class="field">
+        <label for="newPass">Nova palavra-passe</label>
+        <input type="password" id="newPass" placeholder="Mínimo 6 caracteres" required minlength="6">
+      </div>
+      <div class="field">
+        <label for="newPassConfirm">Confirmar nova palavra-passe</label>
+        <input type="password" id="newPassConfirm" placeholder="Repita a palavra-passe" required minlength="6">
+      </div>
+      <div class="field-error" id="changeError"></div>
+      <button type="submit" class="auth-submit">Guardar alteração</button>
+    </form>
+
+    <a class="auth-back" href="admin-dashboard.html">← Voltar ao painel</a>
+  </div>
+</div>
+
+<div class="toast"></div>
+
+<script src="js/data.js"></script>
+<script src="js/util.js"></script>
+<script>
+  if (Util.requireAuth()) {
+    Util.injectGlyph('.masthead__glyph');
+    document.getElementById('userLabel').textContent = DB.getSession().email;
+
+    document.getElementById('changeForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const current = document.getElementById('currentPassword').value;
+      const p1 = document.getElementById('newPass').value;
+      const p2 = document.getElementById('newPassConfirm').value;
+      const errorEl = document.getElementById('changeError');
+      const admin = DB.getAdmin();
+
+      if (current !== admin.password) {
+        errorEl.textContent = 'A palavra-passe atual está incorreta.';
+        errorEl.classList.add('is-visible');
+        return;
+      }
+      if (p1.length < 6) {
+        errorEl.textContent = 'A nova palavra-passe deve ter pelo menos 6 caracteres.';
+        errorEl.classList.add('is-visible');
+        return;
+      }
+      if (p1 !== p2) {
+        errorEl.textContent = 'As palavras-passe não coincidem.';
+        errorEl.classList.add('is-visible');
+        return;
+      }
+
+      errorEl.classList.remove('is-visible');
+      DB.setAdminPassword(p1);
+      Util.toast('Palavra-passe alterada', 'check');
+      setTimeout(() => window.location.href = 'admin-dashboard.html', 600);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mercúrio Casa 9 — Revista literária digital</title>
+<meta name="description" content="Mercúrio Casa 9 — uma editora independente de textos autorais. Ensaios, contos e fragmentos.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/header.css">
+<link rel="stylesheet" href="css/index-page.css">
+</head>
+<body>
+
+<header class="masthead">
+  <nav class="utility-nav">
+    <a href="admin-login.html">Administrador</a>
+  </nav>
+  <div class="masthead__glyph"></div>
+  <h1 class="masthead__title">
+    MERCÚRIO
+    <span class="casa9">CASA&nbsp;9</span>
+  </h1>
+  <p class="masthead__tagline">uma editora independente de textos autorais</p>
+  <div class="masthead__rule"></div>
+</header>
+
+<main class="contents-page">
+  <div class="contents-page__heading">
+    <span class="label-caps">Sumário desta edição</span>
+    <h2>Os textos publicados, por ordem de chegada</h2>
+    <div class="spine"><div class="spine__mark"></div></div>
+  </div>
+
+  <ul class="index-list" id="indexList"></ul>
+
+  <div class="contents-empty" id="emptyState" style="display:none;">
+    <p>Ainda não há textos publicados.</p>
+    <p>O primeiro capítulo desta casa está por escrever.</p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="masthead__glyph"></div>
+  <p>MERCÚRIO CASA 9</p>
+  <p><a href="admin-login.html">Acesso do administrador</a></p>
+</footer>
+
+<script src="js/supabase-client.js"></script>
+<script src="js/data.js"></script>
+<script src="js/util.js"></script>
+<script>
+  Util.injectGlyph('.masthead__glyph, .spine__mark');
+  Util.buildToTopButton();
+
+  function renderIndex() {
+    const posts = DB.getPublishedPosts();
+    const list = document.getElementById('indexList');
+    const empty = document.getElementById('emptyState');
+
+    if (posts.length === 0) {
+      empty.style.display = 'block';
+      list.style.display = 'none';
+      return;
+    }
+
+    list.innerHTML = posts.map(p => {
+      const hasImg = !!p.coverImage;
+      const readTime = DB.estimateReadTime(p.bodyHtml);
+      return `
+      <li class="index-entry ${hasImg ? 'index-entry--with-image' : ''}">
+        <a class="index-entry__link" href="texto.html?slug=${encodeURIComponent(p.slug)}">
+          <span class="index-entry__folio">${Util.romanize(p.folio || 1)}</span>
+          <span class="index-entry__body">
+            <span class="index-entry__title">${Util.escapeHtml(p.title)}</span>
+            ${p.subtitle ? `<span class="index-entry__subtitle">${Util.escapeHtml(p.subtitle)}</span>` : ''}
+            <span class="index-entry__meta">
+              <span class="index-entry__date">${Util.formatDate(p.date)}</span>
+              <span class="index-entry__dot"></span>
+              <span class="index-entry__readtime">${readTime} min de leitura</span>
+            </span>
+          </span>
+          ${hasImg ? `<span class="index-entry__thumb"><img src="${p.coverImage}" alt=""></span>` : '<span></span>'}
+          <span class="index-entry__arrow">→</span>
+        </a>
+      </li>
+      `;
+    }).join('');
+  }
+
+  async function init() {
+    try {
+      await DB.sync();
+      renderIndex();
+      Util.buildToc(null);
+    } catch (e) {
+      document.getElementById('indexList').style.display = 'none';
+      const empty = document.getElementById('emptyState');
+      empty.style.display = 'block';
+      empty.innerHTML = '<p>Não foi possível ligar à base de dados.</p><p>Verifique a sua ligação e tente novamente.</p>';
+      Util.buildToc(null);
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
