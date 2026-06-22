@@ -10,13 +10,26 @@
 <link rel="stylesheet" href="css/header.css">
 <link rel="stylesheet" href="css/index-page.css">
 <link rel="stylesheet" href="css/reader.css">
+<style>
+  /* Assinatura digital — marca d'água elegante ao final de cada texto */
+  .reader__signature {
+    display: block;
+    text-align: right;
+    font-style: italic;
+    opacity: 0.45;
+    font-size: 0.88rem;
+    margin-top: 2.5rem;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.02em;
+    user-select: none;
+    pointer-events: none;
+  }
+</style>
 </head>
 <body>
 
 <header class="masthead" style="padding-bottom: 1.5rem;">
-  <nav class="utility-nav">
-    <a href="admin-login.html">Administrador</a>
-  </nav>
+  <nav class="utility-nav"></nav>
   <a href="index.html" style="display:inline-block;">
     <div class="masthead__glyph" style="width:24px;height:24px;"></div>
   </a>
@@ -77,6 +90,17 @@ async function init() {
     const nextPost = allPublished[idx - 1]; // mais recente
     const readTime = DB.estimateReadTime(post.bodyHtml);
 
+    // Formatar data com horário local
+    function formatDateWithTime(dateStr) {
+      const date = new Date(dateStr);
+      if (isNaN(date)) return Util.formatDate(dateStr);
+      const datePart = Util.formatDate(dateStr);
+      const timePart = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+      return `${datePart} às ${timePart}`;
+    }
+
+    const dateDisplay = formatDateWithTime(post.date || post.createdAt);
+
     root.innerHTML = `
       <a class="reader__back" href="index.html">${ICONS.arrowLeft} Sumário</a>
 
@@ -86,7 +110,7 @@ async function init() {
           <h1 class="reader__title">${Util.escapeHtml(post.title)}</h1>
           ${post.subtitle ? `<p class="reader__subtitle">${Util.escapeHtml(post.subtitle)}</p>` : ''}
           <div class="reader__meta">
-            <span>${Util.formatDate(post.date)}</span>
+            <span>${dateDisplay}</span>
             <span class="dot"></span>
             <span>${readTime} min de leitura</span>
           </div>
@@ -99,6 +123,8 @@ async function init() {
         </figure>` : ''}
 
         <div class="reader__body">${post.bodyHtml}</div>
+
+        <p class="reader__signature">Texto por Victor Valmont</p>
 
         <div class="reader__colophon">
           <div class="reader__tools">

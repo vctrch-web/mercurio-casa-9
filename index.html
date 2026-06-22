@@ -13,22 +13,19 @@
 <body>
 
 <header class="masthead">
-  <nav class="utility-nav">
-    <a href="admin-login.html">Administrador</a>
-  </nav>
+  <nav class="utility-nav"></nav>
   <div class="masthead__glyph"></div>
   <h1 class="masthead__title">
     MERCÚRIO
     <span class="casa9">CASA&nbsp;9</span>
   </h1>
-  <p class="masthead__tagline">uma editora independente de textos autorais</p>
+  <p class="masthead__tagline">Mercúrio na Casa 9 procura entender os princípios e as grandes questões da existência, transformando o aprendizado em uma jornada constante de descoberta e compartilhamento.</p>
   <div class="masthead__rule"></div>
 </header>
 
 <main class="contents-page">
   <div class="contents-page__heading">
-    <span class="label-caps">Sumário desta edição</span>
-    <h2>Os textos publicados, por ordem de chegada</h2>
+    <span class="label-caps">Laboratório de Pensamentos</span>
     <div class="spine"><div class="spine__mark"></div></div>
   </div>
 
@@ -43,12 +40,37 @@
 <footer class="site-footer">
   <div class="masthead__glyph"></div>
   <p>MERCÚRIO CASA 9</p>
-  <p><a href="admin-login.html">Acesso do administrador</a></p>
 </footer>
 
-<script src="js/supabase-client.js"></script>
-<script src="js/data.js"></script>
-<script src="js/util.js"></script>
+<style>
+  /* Sumário hover: substitui texto por símbolo ☿ elegante */
+  .toc-toggle-label,
+  .toc__trigger,
+  [class*="toc"][class*="toggle"],
+  [class*="toc"][class*="btn"],
+  [class*="toc"][class*="label"] {
+    font-size: 0 !important;
+  }
+  .toc-toggle-label::before,
+  .toc__trigger::before,
+  [class*="toc"][class*="toggle"]::before,
+  [class*="toc"][class*="btn"]::before,
+  [class*="toc"][class*="label"]::before {
+    content: "☿";
+    font-size: 1.1rem;
+    opacity: 0.65;
+    display: block;
+    transition: opacity 0.2s ease;
+  }
+  .toc-toggle-label:hover::before,
+  .toc__trigger:hover::before,
+  [class*="toc"][class*="toggle"]:hover::before,
+  [class*="toc"][class*="btn"]:hover::before,
+  [class*="toc"][class*="label"]:hover::before {
+    opacity: 1;
+  }
+</style>
+
 <script>
   Util.injectGlyph('.masthead__glyph, .spine__mark');
   Util.buildToTopButton();
@@ -102,7 +124,26 @@
     }
   }
 
-  init();
+  init().then(() => {
+    // Substituir qualquer texto "Sumário" no botão/aba do TOC por símbolo ☿
+    setTimeout(() => {
+      document.querySelectorAll('button, [role="button"], a').forEach(el => {
+        const txt = el.textContent.trim();
+        if (/^sum[aá]rio$/i.test(txt)) {
+          el.setAttribute('aria-label', 'Sumário');
+          el.setAttribute('title', 'Sumário');
+          el.style.fontSize = '0';
+          el.style.lineHeight = '0';
+          const glyph = document.createElement('span');
+          glyph.textContent = '☿';
+          glyph.style.cssText = 'font-size:1.1rem;opacity:0.65;display:inline-block;transition:opacity 0.2s ease;line-height:1;';
+          el.appendChild(glyph);
+          el.addEventListener('mouseenter', () => glyph.style.opacity = '1');
+          el.addEventListener('mouseleave', () => glyph.style.opacity = '0.65');
+        }
+      });
+    }, 300);
+  });
 </script>
 </body>
 </html>
