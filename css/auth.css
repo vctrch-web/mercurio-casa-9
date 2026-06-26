@@ -1,0 +1,170 @@
+/* ============================================================
+   MERCÚRIO CASA 9 — Acesso do administrador (login)
+   ============================================================ */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem var(--gutter);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-card__head {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.auth-card__head .masthead__glyph {
+  width: 26px; height: 26px;
+  margin-bottom: 1.25rem;
+}
+
+.auth-card__head h1 {
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+}
+
+.auth-card__head p {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  font-family: var(--face-display);
+  color: var(--ink-faint);
+}
+
+.auth-form {
+  border-top: 1px solid var(--rule-strong);
+  padding-top: 2rem;
+}
+
+.field {
+  margin-bottom: 1.5rem;
+}
+
+.field label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: var(--ink-faint);
+  margin-bottom: 0.6rem;
+}
+
+.field input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--rule-strong);
+  padding: 0.5rem 0.1rem;
+  font-size: 1.05rem;
+  font-family: var(--face-body);
+  color: var(--ink);
+  transition: border-color 0.25s var(--ease);
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.field input::placeholder { color: var(--ink-faint); opacity: 0.6; }
+
+.field-error {
+  font-size: 0.78rem;
+  color: var(--ink);
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  background: var(--wash);
+  border-left: 2px solid var(--ink);
+  display: none;
+}
+.field-error.is-visible { display: block; }
+
+.auth-submit {
+  width: 100%;
+  padding: 0.95rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  transition: opacity 0.2s var(--ease);
+}
+.auth-submit:hover { opacity: 0.85; }
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  font-size: 0.78rem;
+}
+.auth-links button {
+  color: var(--ink-faint);
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.auth-links button:hover { color: var(--ink); border-color: var(--ink); }
+
+.auth-back {
+  display: block;
+  text-align: center;
+  margin-top: 2.5rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+  font-weight: 600;
+}
+.auth-back:hover { color: var(--ink); }
+
+/* — Etapas de recuperação de senha — */
+.auth-step { display: none; }
+.auth-step.is-active { display: block; }
+
+.auth-code-inputs {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+}
+.auth-code-inputs input {
+  width: 44px;
+  height: 56px;
+  text-align: center;
+  font-size: 1.4rem;
+  border: 1px solid var(--rule-strong);
+  background: transparent;
+}
+.auth-code-inputs input:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.auth-note {
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+  text-align: center;
+  margin-bottom: 1.75rem;
+  line-height: 1.5;
+}
+.auth-note strong { color: var(--ink-soft); font-weight: 600; }
+
+.auth-demo-banner {
+  margin-top: 2rem;
+  padding: 1rem 1.1rem;
+  background: var(--wash);
+  border: 1px dashed var(--rule-strong);
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.auth-demo-banner strong { color: var(--ink); }
