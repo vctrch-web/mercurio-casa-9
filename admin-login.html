@@ -36,15 +36,11 @@
           <button type="button" id="goForgot">Esqueci-me da palavra-passe</button>
         </div>
       </form>
-
-      <div class="auth-demo-banner">
-        <strong>Nota de demonstração —</strong> este protótipo guarda os dados apenas neste navegador. Palavra-passe inicial: <strong>mercurio9</strong>. Para o site funcionar publicamente, com envio real de código por e-mail, é preciso ligar um backend (explico isto na conversa).
-      </div>
     </div>
 
-    <!-- ETAPA 2: Pedir recuperação -->
+    <!-- ETAPA 2: Enviar reset via Supabase Auth -->
     <div class="auth-step" id="stepForgot">
-      <p class="auth-note">Prima o botão abaixo para enviar um e-mail de redefinição de palavra-passe para o endereço de administrador registado.</p>
+      <p class="auth-note">Prima o botão abaixo para receber um e-mail de redefinição de palavra-passe no endereço de administrador registado.</p>
       <form class="auth-form" id="forgotForm" style="border-top:none; padding-top:0;" novalidate>
         <div class="field-error" id="forgotError">Ocorreu um erro ao enviar o e-mail. Tente novamente.</div>
         <button type="submit" class="auth-submit" id="btnSendReset">Enviar e-mail de redefinição</button>
@@ -52,13 +48,13 @@
       <a class="auth-back" id="backToLogin1">← Voltar ao início de sessão</a>
     </div>
 
-    <!-- ETAPA 3: Confirmação de envio -->
+    <!-- ETAPA 3: Confirmação -->
     <div class="auth-step" id="stepEmailSent">
-      <p class="auth-note" style="text-align:center; padding: 1rem 0;">
-        ✉️ E-mail enviado!<br><br>
-        Verifique a caixa de entrada de <strong>joaovctrch@gmail.com</strong> e clique no link de redefinição.
+      <p class="auth-note" style="text-align:center; padding: 1.5rem 0 0;">
+        ✉️ E-mail enviado com sucesso.<br><br>
+        Verifique a caixa de entrada de <strong>joaovctrch@gmail.com</strong> e clique no link para redefinir a palavra-passe.
       </p>
-      <a class="auth-back" id="backToLogin3">← Voltar ao início de sessão</a>
+      <a class="auth-back" id="backToLogin2">← Voltar ao início de sessão</a>
     </div>
 
   </div>
@@ -72,17 +68,15 @@
 <script>
   Util.injectGlyph('.masthead__glyph');
 
-  // E-mail oficial do administrador registado no Supabase Auth
   const ADMIN_EMAIL = 'joaovctrch@gmail.com';
 
-  // Se já estiver autenticado, vai direto para o painel
   if (DB.isAuthenticated()) {
     window.location.href = 'admin-dashboard.html';
   }
 
   const steps = {
-    login: document.getElementById('stepLogin'),
-    forgot: document.getElementById('stepForgot'),
+    login:     document.getElementById('stepLogin'),
+    forgot:    document.getElementById('stepForgot'),
     emailSent: document.getElementById('stepEmailSent'),
   };
 
@@ -91,49 +85,74 @@
     steps[name].classList.add('is-active');
   }
 
-  // --- Login ---
-  document.getElementById('loginForm').addEventListener('submit', (e) => {
+  // --- Login via Supabase Auth ---
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
+    const email    = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    const errorEl = document.getElementById('loginError');
+    const errorEl  = document.getElementById('loginError');
+    errorEl.classList.remove('is-visible');
 
-    if (DB.login(email, password)) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error_description || 'Erro de autenticação');
+
+      // Guarda sessão e redireciona
+      localStorage.setItem('mc9_session', JSON.stringify({ email, since: Date.now(), access_token: data.access_token }));
       Util.toast('Sessão iniciada', 'check');
       setTimeout(() => window.location.href = 'admin-dashboard.html', 400);
-    } else {
-      errorEl.classList.add('is-visible');
+    } catch (err) {
+      // Fallback: tenta login local (para desenvolvimento)
+      if (DB.login(email, password)) {
+        Util.toast('Sessão iniciada', 'check');
+        setTimeout(() => window.location.href = 'admin-dashboard.html', 400);
+      } else {
+        errorEl.classList.add('is-visible');
+      }
     }
   });
 
-  // --- Navegação entre etapas ---
-  document.getElementById('goForgot').addEventListener('click', () => {
-    showStep('forgot');
-  });
+  // --- Navegação ---
+  document.getElementById('goForgot').addEventListener('click', () => showStep('forgot'));
   document.getElementById('backToLogin1').addEventListener('click', () => showStep('login'));
-  document.getElementById('backToLogin3').addEventListener('click', () => showStep('login'));
+  document.getElementById('backToLogin2').addEventListener('click', () => showStep('login'));
 
-  // --- Esqueci a senha: usa Supabase Auth nativo ---
+  // --- Esqueci a senha: Supabase Auth nativo ---
   document.getElementById('forgotForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const errorEl = document.getElementById('forgotError');
-    const btn = document.getElementById('btnSendReset');
-
-    btn.disabled = true;
+    const btn     = document.getElementById('btnSendReset');
+    btn.disabled  = true;
     btn.textContent = 'A enviar…';
     errorEl.classList.remove('is-visible');
 
     try {
-      // Chama a função nativa do Supabase Auth para enviar e-mail de redefinição
-      const { error } = await supabase.auth.resetPasswordForEmail(ADMIN_EMAIL, {
-        redirectTo: window.location.origin + '/admin-reset.html'
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          email: ADMIN_EMAIL,
+          gotrue_meta_security: {},
+        }),
       });
-
-      if (error) throw error;
-
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.msg || d.message || 'Erro');
+      }
       showStep('emailSent');
     } catch (err) {
-      console.error('Erro ao enviar e-mail de redefinição:', err);
+      console.error('Erro reset:', err);
       errorEl.classList.add('is-visible');
       btn.disabled = false;
       btn.textContent = 'Enviar e-mail de redefinição';

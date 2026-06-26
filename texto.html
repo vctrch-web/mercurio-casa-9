@@ -11,13 +11,13 @@
 <link rel="stylesheet" href="css/index-page.css">
 <link rel="stylesheet" href="css/reader.css">
 <style>
-  /* Assinatura digital — marca d'água elegante ao final de cada texto */
   .reader__signature {
     display: block;
     text-align: right;
     font-style: italic;
-    opacity: 0.45;
-    font-size: 0.88rem;
+    font-family: var(--face-display);
+    opacity: 0.42;
+    font-size: 0.92rem;
     margin-top: 2.5rem;
     margin-bottom: 0.5rem;
     letter-spacing: 0.02em;
@@ -86,27 +86,31 @@ async function init() {
 
     const allPublished = DB.getPublishedPosts();
     const idx = allPublished.findIndex(p => p.id === post.id);
-    const prevPost = allPublished[idx + 1]; // mais antigo
-    const nextPost = allPublished[idx - 1]; // mais recente
+    const prevPost = allPublished[idx + 1];
+    const nextPost = allPublished[idx - 1];
     const readTime = DB.estimateReadTime(post.bodyHtml);
 
-    // Formatar data com horário local
+    // Data com horário — lê a hora literal do string sem converter fuso
     function formatDateWithTime(dateStr) {
-      const date = new Date(dateStr);
-      if (isNaN(date)) return Util.formatDate(dateStr);
-      const datePart = Util.formatDate(dateStr);
-      const timePart = date.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
+      if (!dateStr) return '';
+      // Só data (YYYY-MM-DD)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return Util.formatDate(dateStr);
+      }
+      // ISO com hora — extrai partes diretamente do string sem conversão de timezone
+      const match = dateStr.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})/);
+      if (!match) return Util.formatDate(dateStr.slice(0, 10));
+      const datePart = Util.formatDate(match[1]);
+      const timePart = `${match[2]}:${match[3]}`;
       return `${datePart} às ${timePart}`;
     }
-
     const dateDisplay = formatDateWithTime(post.date || post.createdAt);
 
     root.innerHTML = `
-      <a class="reader__back" href="index.html">${ICONS.arrowLeft} Sumário</a>
+      <a class="reader__back" href="index.html">${ICONS.arrowLeft} Voltar ao início</a>
 
       <article>
         <header class="reader__head">
-          <p class="reader__folio">Folha ${Util.romanize(post.folio || 1)}</p>
           <h1 class="reader__title">${Util.escapeHtml(post.title)}</h1>
           ${post.subtitle ? `<p class="reader__subtitle">${Util.escapeHtml(post.subtitle)}</p>` : ''}
           <div class="reader__meta">
@@ -129,6 +133,7 @@ async function init() {
         <div class="reader__colophon">
           <div class="reader__tools">
             <button id="btnEdit" style="display:none;">${ICONS.edit} Editar</button>
+            <a id="btnAdminBack" href="admin-dashboard.html" style="display:none;">${ICONS.dashboard} Painel</a>
             <div class="reader__share-menu" id="shareMenu">
               <button id="btnShare">${ICONS.share} Partilhar</button>
               <div class="reader__share-options">
@@ -139,7 +144,6 @@ async function init() {
               </div>
             </div>
           </div>
-          <p class="reader__folio-end">— ${Util.romanize(post.folio || 1)} —</p>
         </div>
       </article>
 
@@ -155,13 +159,14 @@ async function init() {
       </nav>
     `;
 
-    // Mostrar botão de editar apenas se autenticado como admin
+    // Mostrar botões de admin apenas se autenticado
     if (DB.isAuthenticated()) {
       const btnEdit = document.getElementById('btnEdit');
       btnEdit.style.display = 'inline-flex';
       btnEdit.addEventListener('click', () => {
         window.location.href = `admin-editor.html?id=${encodeURIComponent(post.id)}`;
       });
+      document.getElementById('btnAdminBack').style.display = 'inline-flex';
     }
 
     // Partilhar

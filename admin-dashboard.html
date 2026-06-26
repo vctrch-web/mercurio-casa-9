@@ -108,7 +108,7 @@
                     ? `<a href="texto.html?slug=${encodeURIComponent(p.slug)}" target="_blank">${Util.escapeHtml(p.title) || '(sem título)'}</a>`
                     : (Util.escapeHtml(p.title) || '(sem título)')}
                 </div>
-                <div class="manage-row__meta">${Util.formatDate(p.date)} · Folha ${Util.romanize(p.folio || 1)}</div>
+                <div class="manage-row__meta">${Util.formatDate(p.date)}</div>
               </div>
               <span class="status-pill ${p.status === 'published' ? 'status-pill--published' : ''}">${p.status === 'published' ? 'Publicado' : 'Rascunho'}</span>
               <div class="manage-row__actions">

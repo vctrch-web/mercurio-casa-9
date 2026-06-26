@@ -20,13 +20,11 @@
     <span class="casa9">CASA&nbsp;9</span>
   </h1>
   <p class="masthead__tagline">Mercúrio na Casa 9 procura entender os princípios e as grandes questões da existência, transformando o aprendizado em uma jornada constante de descoberta e compartilhamento.</p>
-  <div class="masthead__rule"></div>
 </header>
 
 <main class="contents-page">
   <div class="contents-page__heading">
     <span class="label-caps">Laboratório de Pensamentos</span>
-    <div class="spine"><div class="spine__mark"></div></div>
   </div>
 
   <ul class="index-list" id="indexList"></ul>
@@ -42,35 +40,9 @@
   <p>MERCÚRIO CASA 9</p>
 </footer>
 
-<style>
-  /* Sumário hover: substitui texto por símbolo ☿ elegante */
-  .toc-toggle-label,
-  .toc__trigger,
-  [class*="toc"][class*="toggle"],
-  [class*="toc"][class*="btn"],
-  [class*="toc"][class*="label"] {
-    font-size: 0 !important;
-  }
-  .toc-toggle-label::before,
-  .toc__trigger::before,
-  [class*="toc"][class*="toggle"]::before,
-  [class*="toc"][class*="btn"]::before,
-  [class*="toc"][class*="label"]::before {
-    content: "☿";
-    font-size: 1.1rem;
-    opacity: 0.65;
-    display: block;
-    transition: opacity 0.2s ease;
-  }
-  .toc-toggle-label:hover::before,
-  .toc__trigger:hover::before,
-  [class*="toc"][class*="toggle"]:hover::before,
-  [class*="toc"][class*="btn"]:hover::before,
-  [class*="toc"][class*="label"]:hover::before {
-    opacity: 1;
-  }
-</style>
-
+<script src="js/supabase-client.js"></script>
+<script src="js/data.js"></script>
+<script src="js/util.js"></script>
 <script>
   Util.injectGlyph('.masthead__glyph, .spine__mark');
   Util.buildToTopButton();
@@ -90,9 +62,8 @@
       const hasImg = !!p.coverImage;
       const readTime = DB.estimateReadTime(p.bodyHtml);
       return `
-      <li class="index-entry ${hasImg ? 'index-entry--with-image' : ''}">
+      <li class="index-entry">
         <a class="index-entry__link" href="texto.html?slug=${encodeURIComponent(p.slug)}">
-          <span class="index-entry__folio">${Util.romanize(p.folio || 1)}</span>
           <span class="index-entry__body">
             <span class="index-entry__title">${Util.escapeHtml(p.title)}</span>
             ${p.subtitle ? `<span class="index-entry__subtitle">${Util.escapeHtml(p.subtitle)}</span>` : ''}
@@ -102,7 +73,6 @@
               <span class="index-entry__readtime">${readTime} min de leitura</span>
             </span>
           </span>
-          ${hasImg ? `<span class="index-entry__thumb"><img src="${p.coverImage}" alt=""></span>` : '<span></span>'}
           <span class="index-entry__arrow">→</span>
         </a>
       </li>
@@ -125,18 +95,28 @@
   }
 
   init().then(() => {
-    // Substituir qualquer texto "Sumário" no botão/aba do TOC por símbolo ☿
+    // Mostrar link do painel apenas se admin estiver logado
+    if (DB.isAuthenticated()) {
+      const nav = document.querySelector('.utility-nav');
+      if (nav) {
+        const link = document.createElement('a');
+        link.href = 'admin-dashboard.html';
+        link.innerHTML = `${ICONS.dashboard} Painel`;
+        link.style.cssText = 'display:inline-flex;align-items:center;gap:0.35rem;';
+        link.querySelector('svg') && (link.querySelector('svg').style.cssText = 'width:13px;height:13px;');
+        nav.appendChild(link);
+      }
+    }
+    // Substituir texto do botão do sumário por símbolo ☿
     setTimeout(() => {
-      document.querySelectorAll('button, [role="button"], a').forEach(el => {
-        const txt = el.textContent.trim();
-        if (/^sum[aá]rio$/i.test(txt)) {
+      document.querySelectorAll('button, [role="button"]').forEach(el => {
+        if (/^sum[aá]rio$/i.test(el.textContent.trim())) {
           el.setAttribute('aria-label', 'Sumário');
           el.setAttribute('title', 'Sumário');
           el.style.fontSize = '0';
-          el.style.lineHeight = '0';
           const glyph = document.createElement('span');
           glyph.textContent = '☿';
-          glyph.style.cssText = 'font-size:1.1rem;opacity:0.65;display:inline-block;transition:opacity 0.2s ease;line-height:1;';
+          glyph.style.cssText = 'font-size:1.1rem;opacity:0.65;display:inline-block;transition:opacity 0.2s;line-height:1;';
           el.appendChild(glyph);
           el.addEventListener('mouseenter', () => glyph.style.opacity = '1');
           el.addEventListener('mouseleave', () => glyph.style.opacity = '0.65');
